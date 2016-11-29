@@ -23,19 +23,23 @@ module Devise
           unless has_uniqueness_validation_of_login?
             validation_condition = "#{login_attribute}_changed?".to_sym
 
-            validates login_attribute, :uniqueness => {
-                                          :scope          => authentication_keys[1..-1],
-                                          :case_sensitive => !!case_insensitive_keys
-                                        },
-                                        :if => validation_condition
+            if email_validation
+              validates login_attribute, :uniqueness => {
+                                            :scope          => authentication_keys[1..-1],
+                                            :case_sensitive => !!case_insensitive_keys
+                                          },
+                                          :if => validation_condition
+            end
 
             already_validated_email = login_attribute.to_s == 'email'
           end
 
           unless devise_validation_enabled?
-            validates :email, :presence => true, :if => :email_required?
-            unless already_validated_email
-              validates :email, :uniqueness => true, :allow_blank => true, :if => :email_changed? # check uniq for email ever
+            if email_validation
+              validates :email, :presence => true, :if => :email_required?
+              unless already_validated_email
+                validates :email, :uniqueness => true, :allow_blank => true, :if => :email_changed? # check uniq for email ever
+              end
             end
 
             validates :password, :presence => true, :length => password_length, :confirmation => true, :if => :password_required?
